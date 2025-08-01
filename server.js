@@ -11,7 +11,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import process from "process";
 import connectDB from "./DB/db.js";
-import freelancerInvoiceUpload from "./api/freelancerInvoiceUpload.js";
+import freelancerInvoiceUpload from "./api/freelancer-invoice-upload.js";
 
 const app = express();
 

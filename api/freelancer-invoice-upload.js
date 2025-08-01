@@ -1,58 +1,24 @@
-// api/upload/index.js
-import express from "express";
-import supabase from "../supabaseclient.js";
-import "dotenv/config";
+// api/freelancer-invoice-upload.js
+import supabase from "../supabaseclient.js"; // expects createClient export
+import connectDB from "../DB/db.js"; // your Mongo connection helper
 import UserAndFileLink from "../models/UserAndFileLink.js";
 
-const router = express.Router();
+// ensure Mongo connection (with caching inside your db.js)
+await connectDB();
 
 const MAX_SIZE = 20 * 1024 * 1024; // 20MB
 
-// helper: upload to Supabase
-const uploadToSupabase = async ({ buffer, filename, contentType }) => {
-  const { error } = await supabase.storage
-    .from("freelancers-invoice")
-    .upload(filename, buffer, {
-      contentType,
-      upsert: false,
-    });
-
-  if (error) {
-    throw error;
-  }
-
-  const { data: publicData } = supabase.storage
-    .from("freelancer-invoice")
-    .getPublicUrl(filename);
-
-  return {
-    publicUrl: publicData.publicUrl,
-    storedFilename: filename,
-  };
-};
-
-// helper: delete if rollback needed
-const deleteFromSupabase = async (filename) => {
-  const { error } = await supabase.storage
-    .from("freelancer-invoice")
-    .remove([filename]);
-  if (error) {
-    console.warn("Cleanup failed for", filename, error);
-  }
-};
-
-// very minimal multipart parser for one file + fields
+// Minimal multipart parser for one PDF file + userName field
 const parseMultipart = async (req) => {
   return new Promise((resolve, reject) => {
-    const contentType = req.headers["content-type"];
-    if (!contentType || !contentType.includes("multipart/form-data")) {
+    const contentType = req.headers["content-type"] || "";
+    if (!contentType.includes("multipart/form-data")) {
       return reject(new Error("Content-Type must be multipart/form-data"));
     }
 
     const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
-    if (!boundaryMatch) {
-      return reject(new Error("No boundary in Content-Type"));
-    }
+    if (!boundaryMatch) return reject(new Error("No boundary in Content-Type"));
+
     const boundary = `--${(boundaryMatch[1] || boundaryMatch[2]).trim()}`;
     const chunks = [];
     let size = 0;
@@ -60,7 +26,7 @@ const parseMultipart = async (req) => {
     req.on("data", (chunk) => {
       size += chunk.length;
       if (size > MAX_SIZE) {
-        req.destroy(); // stop
+        req.destroy();
         return reject(new Error("Payload too large"));
       }
       chunks.push(chunk);
@@ -68,21 +34,23 @@ const parseMultipart = async (req) => {
 
     req.on("end", () => {
       const buffer = Buffer.concat(chunks);
-      const str = buffer.toString("binary"); // preserve raw bytes for splitting
-      const parts = str.split(boundary).slice(1, -1); // drop preamble and final --
+      const str = buffer.toString("binary");
+      const parts = str.split(boundary).slice(1, -1); // drop preamble and closing --
 
       let userName = null;
-      let file = null; // { filename, contentType, data: Buffer }
+      let file = null;
 
       for (let part of parts) {
-        // Each part starts with \r\n
         part = part.replace(/^\r\n/, "");
         const [rawHeaders, ...rest] = part.split("\r\n\r\n");
         if (!rawHeaders || rest.length === 0) continue;
         const bodySection = rest.join("\r\n\r\n");
         const headers = rawHeaders.split("\r\n").reduce((acc, line) => {
-          const [k, v] = line.split(":");
-          if (k && v) acc[k.toLowerCase()] = v.trim();
+          const idx = line.indexOf(":");
+          if (idx === -1) return acc;
+          const key = line.slice(0, idx).toLowerCase();
+          const val = line.slice(idx + 1).trim();
+          acc[key] = val;
           return acc;
         }, {});
 
@@ -94,16 +62,11 @@ const parseMultipart = async (req) => {
         const fieldName = nameMatch ? nameMatch[1] : null;
 
         if (filenameMatch) {
-          // It's the file
           const filename = filenameMatch[1];
           const contentTypeHeader =
             headers["content-type"] || "application/octet-stream";
-
-          // bodySection ends with trailing \r\n -- remove the final CRLF before boundary
           let fileDataBinary = bodySection.replace(/\r\n$/, "");
-          // Convert binary string back to buffer
           const fileBuffer = Buffer.from(fileDataBinary, "binary");
-
           file = {
             fieldName,
             filename,
@@ -111,7 +74,6 @@ const parseMultipart = async (req) => {
             data: fileBuffer,
           };
         } else if (fieldName === "userName") {
-          // Text field: bodySection has the value (trim trailing CRLF)
           const val = bodySection.replace(/\r\n$/, "");
           userName = val;
         }
@@ -120,35 +82,52 @@ const parseMultipart = async (req) => {
       resolve({ userName, file });
     });
 
-    req.on("error", (e) => {
-      reject(e);
-    });
+    req.on("error", (e) => reject(e));
   });
 };
 
-router.post("/", async (req, res) => {
+const uploadToSupabase = async ({ buffer, filename, contentType }) => {
+  const { error } = await supabase.storage
+    .from("freelancers-invoice")
+    .upload(filename, buffer, {
+      contentType,
+      upsert: false,
+    });
+  if (error) throw error;
+
+  const { data: publicData } = await supabase.storage
+    .from("freelancer-invoice")
+    .getPublicUrl(filename);
+
+  return {
+    publicUrl: publicData.publicUrl,
+    storedFilename: filename,
+  };
+};
+
+const deleteFromSupabase = async (filename) => {
+  await supabase.storage.from("freelancer-invoice").remove([filename]);
+};
+
+export default async function handler(req, res) {
+  if (req.method !== "POST")
+    return res.status(405).json({ error: "Method Not Allowed" });
+
   let parsed;
   try {
     parsed = await parseMultipart(req);
   } catch (err) {
-    const msg = err.message || "Failed to parse multipart";
-    if (msg.includes("Payload too large")) {
-      return res.status(413).json({ error: "File too large (max 20MB)" });
-    }
+    const msg = err.message || "Parse error";
+    if (msg.toLowerCase().includes("large"))
+      return res.status(413).json({ error: msg });
     return res.status(400).json({ error: msg });
   }
 
   const { userName, file } = parsed;
-
-  if (!userName) {
-    return res.status(400).json({ error: "userName is required" });
-  }
-  if (!file) {
-    return res.status(400).json({ error: "No file received" });
-  }
-  if (file.contentType !== "application/pdf") {
+  if (!userName) return res.status(400).json({ error: "userName is required" });
+  if (!file) return res.status(400).json({ error: "No file received" });
+  if (file.contentType !== "application/pdf")
     return res.status(400).json({ error: "Only PDFs allowed" });
-  }
 
   const timestamp = Date.now();
   const safeName = file.filename.replace(/\s+/g, "_");
@@ -171,7 +150,6 @@ router.post("/", async (req, res) => {
       userName,
       pdfURL: uploadResult.publicUrl,
     });
-
     return res.status(201).json({
       message: "Upload successful",
       record: {
@@ -183,12 +161,9 @@ router.post("/", async (req, res) => {
     });
   } catch (err) {
     console.error("Mongo save error:", err);
-    // rollback file
     await deleteFromSupabase(uploadResult.storedFilename);
     return res.status(500).json({
       error: "Failed to save metadata; uploaded file cleaned up",
     });
   }
-});
-
-export default router;
+}
