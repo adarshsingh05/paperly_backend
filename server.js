@@ -5,6 +5,7 @@ console.log(
   "Node version:",
   process.version
 );
+
 import sendPdfRoute from "./pages/api/shareInvoiceWithClient.js";
 import express from "express";
 import cors from "cors";
@@ -42,10 +43,17 @@ app.get("/", (req, res) => res.send("OK"));
 app.use("/api/freelancer-invoice-upload", freelancerInvoiceUpload);
 app.use("/api/shareInvoiceWithClient", sendPdfRoute);
 
-const server = app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// For Vercel deployment, you must export the app instance.
+// Vercel will then use this as the request handler.
+module.exports = app;
 
-server.on("error", (err) => {
-  console.error("Listen error:", err);
-});
+// IMPORTANT: The app.listen() block is for local development only.
+// It starts a persistent server, which is not compatible with Vercel's serverless model.
+//
+// const server = app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`);
+// });
+
+// server.on("error", (err) => {
+//   console.error("Listen error:", err);
+// });
