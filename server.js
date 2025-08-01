@@ -5,13 +5,13 @@ console.log(
   "Node version:",
   process.version
 );
-import sendPdfRoute from "./api/shareInvoiceWithClient.js";
+import sendPdfRoute from "./pages/api/shareInvoiceWithClient.js";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import process from "process";
 import connectDB from "./DB/db.js";
-import freelancerInvoiceUpload from "./api/freelancer-invoice-upload.js";
+import freelancerInvoiceUpload from "./pages/api/freelancer-invoice-upload.js";
 
 const app = express();
 
@@ -37,6 +37,7 @@ console.log(
   PORT
 );
 
+// my routes for the api
 app.get("/", (req, res) => res.send("OK"));
 app.use("/api/freelancer-invoice-upload", freelancerInvoiceUpload);
 app.use("/api/shareInvoiceWithClient", sendPdfRoute);
