@@ -5,7 +5,7 @@ console.log(
   "Node version:",
   process.version
 );
-
+import sendPdfRoute from "./api/shareInvoiceWithClient.js";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -39,6 +39,7 @@ console.log(
 
 app.get("/", (req, res) => res.send("OK"));
 app.use("/api/freelancer-invoice-upload", freelancerInvoiceUpload);
+app.use("/api/shareInvoiceWithClient", sendPdfRoute);
 
 const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
