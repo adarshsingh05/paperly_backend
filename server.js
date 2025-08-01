@@ -43,15 +43,19 @@ app.get("/", (req, res) => res.send("OK"));
 app.use("/api/freelancer-invoice-upload", freelancerInvoiceUpload);
 app.use("/api/shareInvoiceWithClient", sendPdfRoute);
 
-// For local development, you need the app.listen() block to start the server.
-const server = app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// This is the correct way to export the Express app in an ES Module environment.
+// It will be used by Vercel as the request handler.
+export default app;
 
-server.on("error", (err) => {
-  console.error("Listen error:", err);
-});
+// This block will ONLY run in the local environment,
+// because process.env.VERCEL_ENV is not set.
+// On Vercel, this part is skipped.
+if (!process.env.VERCEL_ENV) {
+  const server = app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
 
-// IMPORTANT: The export default app; line should be commented out for local development
-// to avoid confusion, or the file should be a different version.
-// export default app;
+  server.on("error", (err) => {
+    console.error("Listen error:", err);
+  });
+}
