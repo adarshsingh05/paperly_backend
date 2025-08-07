@@ -8,14 +8,26 @@ const EMAIL_USER = "adarshashokbaghel@gmail.com";
 const EMAIL_PASS = "ajrn ibux zorp bmcs";
 
 // HTML Email Template
-const createEmailHTML = (documentId, clientEmail) => {
+const createEmailHTML = (documentId, clientEmail, senderName, invoiceData = {}) => {
+  const {
+    invoiceNumber = documentId,
+    invoiceDate = new Date().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }),
+    invoiceAmount = "To be determined",
+    
+    dueDate = "To be determined"
+  } = invoiceData;
+
   return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Shared - Trim Work</title>
+    <title>Invoice Receipt - Paprly</title>
     <style>
         * {
             margin: 0;
@@ -24,15 +36,15 @@ const createEmailHTML = (documentId, clientEmail) => {
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Arial', sans-serif;
             line-height: 1.6;
-            color: #333;
-            background-color: #f8f9fa;
+            color: #374151;
+            background-color: #F3F4F6;
         }
         
         .email-container {
             max-width: 600px;
-            margin: 0 auto;
+            margin: 20px auto;
             background-color: #ffffff;
             border-radius: 12px;
             overflow: hidden;
@@ -40,173 +52,208 @@ const createEmailHTML = (documentId, clientEmail) => {
         }
         
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px 20px;
+            background-color: #FEFCE8;
+            padding: 32px 24px;
             text-align: center;
+            border-bottom: 2px solid #FEF3C7;
         }
         
-        .header h1 {
+        .company-logo {
             font-size: 28px;
             font-weight: 700;
+            color: #374151;
             margin-bottom: 8px;
+            letter-spacing: 1px;
         }
         
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
+        .invoice-title {
+            font-size: 20px;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .header-subtitle {
+            font-size: 14px;
+            color: #6B7280;
+            font-weight: 400;
         }
         
         .content {
-            padding: 40px 30px;
+            padding: 32px 24px;
         }
         
         .greeting {
             font-size: 18px;
-            color: #2c3e50;
-            margin-bottom: 20px;
+            color: #374151;
+            margin-bottom: 24px;
+            font-weight: 500;
         }
         
-        .document-card {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            border-radius: 12px;
-            padding: 25px;
-            margin: 25px 0;
-            color: white;
-            text-align: center;
-        }
-        
-        .document-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-        
-        .document-id {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        
-        .document-description {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        
-        .action-section {
-            text-align: center;
-            margin: 30px 0;
-        }
-        
-        .action-title {
-            font-size: 20px;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-        
-        .button-group {
-            display: inline-block;
-            margin: 10px 0;
-        }
-        
-        .btn {
-            display: inline-block;
-            padding: 14px 28px;
-            margin: 8px;
-            text-decoration: none;
+        .invoice-summary {
+            background-color: #FEFCE8;
+            border: 1px solid #FEF3C7;
             border-radius: 8px;
-            font-weight: 600;
+            padding: 24px;
+            margin: 24px 0;
+        }
+        
+        .summary-title {
             font-size: 16px;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 16px;
+            text-align: center;
         }
         
-        .btn-primary {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
+        .invoice-details {
+            display: table;
+            width: 100%;
+            margin-bottom: 16px;
         }
         
-        .btn-secondary {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            color: white;
+        .detail-row {
+            display: table-row;
         }
         
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        .detail-label {
+            display: table-cell;
+            font-weight: 600;
+            color: #6B7280;
+            padding: 8px 0;
+            width: 40%;
         }
         
-        .features {
-            background-color: #f8f9fa;
-            border-radius: 12px;
-            padding: 25px;
-            margin: 25px 0;
+        .detail-value {
+            display: table-cell;
+            color: #374151;
+            padding: 8px 0;
+            width: 60%;
         }
         
-        .features h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 18px;
+        .amount-highlight {
+            background-color: #FEF3C7;
+            padding: 16px;
+            border-radius: 6px;
+            text-align: center;
+            margin: 16px 0;
         }
         
-        .feature-list {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .feature-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
+        .amount-label {
             font-size: 14px;
-            color: #555;
+            color: #6B7280;
+            margin-bottom: 4px;
         }
         
-        .feature-icon {
-            color: #28a745;
-            margin-right: 10px;
-            font-weight: bold;
+        .amount-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #374151;
+        }
+        
+
+        
+        .professional-message {
+            background-color: #F3F4F6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
+            border-left: 4px solid #6B7280;
+        }
+        
+        .message-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+        
+        .message-text {
+            font-size: 14px;
+            color: #6B7280;
+            line-height: 1.6;
         }
         
         .footer {
-            background-color: #2c3e50;
-            color: white;
-            padding: 30px 20px;
+            background-color: #F3F4F6;
+            padding: 24px;
             text-align: center;
+            border-top: 1px solid #E5E7EB;
         }
         
         .footer-content {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
         
         .footer h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
+            font-size: 16px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
         }
         
         .footer p {
             font-size: 14px;
-            opacity: 0.8;
-            margin-bottom: 5px;
+            color: #6B7280;
+            margin-bottom: 4px;
         }
         
-        .social-links {
-            margin-top: 20px;
+        .contact-info {
+            background-color: #FEFCE8;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
         }
         
-        .social-links a {
-            color: white;
-            text-decoration: none;
-            margin: 0 10px;
-            font-size: 18px;
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #6B7280;
+        }
+        
+        .contact-icon {
+            color: #6B7280;
+            margin-right: 8px;
+            font-weight: bold;
+            width: 16px;
         }
         
         .divider {
-            height: 2px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            margin: 20px 0;
+            height: 1px;
+            background-color: #E5E7EB;
+            margin: 24px 0;
             border: none;
+        }
+        
+        .timestamp {
+            color: #9CA3AF;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 16px;
+            padding: 16px;
+            border-top: 1px solid #E5E7EB;
+        }
+        
+        .sender-info {
+            background-color: #FEFCE8;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
+            text-align: center;
+        }
+        
+        .sender-label {
+            font-size: 12px;
+            color: #6B7280;
+            margin-bottom: 4px;
+        }
+        
+        .sender-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
         }
         
         @media (max-width: 600px) {
@@ -216,12 +263,25 @@ const createEmailHTML = (documentId, clientEmail) => {
             }
             
             .content {
-                padding: 25px 20px;
+                padding: 24px 20px;
             }
             
-            .btn {
+
+            
+            .invoice-details {
                 display: block;
-                margin: 10px 0;
+            }
+            
+            .detail-row {
+                display: block;
+                margin-bottom: 12px;
+            }
+            
+            .detail-label,
+            .detail-value {
+                display: block;
+                width: 100%;
+                padding: 4px 0;
             }
         }
     </style>
@@ -230,81 +290,62 @@ const createEmailHTML = (documentId, clientEmail) => {
     <div class="email-container">
         <!-- Header -->
         <div class="header">
-            <h1>📄 Paprly</h1>
-            <p>Professional Document Management</p>
+            <div class="company-logo">Paprly</div>
+            <div class="invoice-title">Invoice Receipt</div>
+            <div class="header-subtitle">Professional Document Management Platform</div>
         </div>
         
         <!-- Content -->
         <div class="content">
             <div class="greeting">
-                Hello! 👋
+                Hey There!!
             </div>
             
-            <p>You've received an important document that requires your attention. Our freelancer has prepared and shared this document with you for review, approval, or signature.</p>
-            
-            <!-- Document Card -->
-            <div class="document-card">
-                <div class="document-icon">📋</div>
-                <div class="document-id">Document ID: ${documentId}</div>
-                <div class="document-description">Invoice/Document ready for your review</div>
-            </div>
-            
-            <hr class="divider">
-            
-            <!-- Action Section -->
-            <div class="action-section">
-                <div class="action-title">📥 Document Actions</div>
-                <div class="button-group">
-                    <a href="#" class="btn btn-primary">
-                        📖 View Document
-                    </a>
-                    <a href="#" class="btn btn-secondary">
-                        ✍️ Sign Document
-                    </a>
-                </div>
-                <p style="font-size: 14px; color: #666; margin-top: 15px;">
-                    💡 The document is also attached to this email for your convenience
-                </p>
-            </div>
-            
-            <!-- Features -->
-            <div class="features">
-                <h3>🚀 What you can do:</h3>
-                <ul class="feature-list">
-                    <li class="feature-item">
-                        <span class="feature-icon">✓</span>
-                        View and download the document instantly
-                    </li>
-                    <li class="feature-item">
-                        <span class="feature-icon">✓</span>
-                        Add digital signatures securely
-                    </li>
-                    <li class="feature-item">
-                        <span class="feature-icon">✓</span>
-                        Leave comments and feedback
-                    </li>
-                    <li class="feature-item">
-                        <span class="feature-icon">✓</span>
-                        Track document status in real-time
-                    </li>
-                    <li class="feature-item">
-                        <span class="feature-icon">✓</span>
-                        Receive notifications for updates
-                    </li>
-                </ul>
-            </div>
-            
-            <hr class="divider">
-            
-            <p style="color: #666; font-size: 14px; text-align: center; margin-top: 25px;">
-                📧 Sent to: <strong>${clientEmail}</strong><br>
-                🕒 ${new Date().toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+            <p style="color: #6B7280; font-size: 14px; margin-bottom: 24px;">
+                We hope this message finds you well. An invoice has been prepared and is ready for your review. 
+                Please find the invoice details below.
             </p>
+            
+            <!-- Invoice Summary -->
+            <div class="invoice-summary">
+                <div class="summary-title">Invoice Summary</div>
+                <div class="invoice-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Invoice Number:</div>
+                        <div class="detail-value">${invoiceNumber}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Invoice Date:</div>
+                        <div class="detail-value">${invoiceDate}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-label">Due Date:</div>
+                        <div class="detail-value">${dueDate}</div>
+                    </div>
+                </div>
+                
+                <div class="amount-highlight">
+                    <div class="amount-label">Total Amount</div>
+                    <div class="amount-value">${invoiceAmount}</div>
+                </div>
+            </div>
+            
+            <!-- Sender Information -->
+            <div class="sender-info">
+                <div class="sender-label">Invoice prepared by</div>
+                <div class="sender-name">${senderName || 'Your Service Provider'}</div>
+            </div>
+            
+            <hr class="divider">
+            
+            <!-- Professional Message -->
+            <div class="professional-message">
+                <div class="message-title">Thank You</div>
+                <div class="message-text">
+                    Thank you for choosing our services. If you have any questions about this invoice, 
+                    please don't hesitate to reach out to us.
+                </div>
+            </div>
         </div>
         
         <!-- Footer -->
@@ -315,17 +356,25 @@ const createEmailHTML = (documentId, clientEmail) => {
                 <p>Making professional collaboration effortless</p>
             </div>
             
-            <div class="social-links">
-                <a href="#">📧</a>
-                <a href="#">🌐</a>
-                <a href="#">📱</a>
-                <a href="#">💼</a>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <span class="contact-icon">📧</span>
+                    <span>home@paprly.in</span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-icon">📞</span>
+                    <span>+91 7317202906</span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-icon">🌐</span>
+                    <span>www.paprly.in</span>
+                </div>
             </div>
             
-            <p style="font-size: 12px; opacity: 0.7; margin-top: 20px;">
-                © 2024 Trim Work. All rights reserved.<br>
-                This email was sent regarding document ID: ${documentId}
-            </p>
+            <div class="timestamp">
+                © 2024 Paprly. All rights reserved.<br>
+                This email was sent regarding invoice: ${invoiceNumber}
+            </div>
         </div>
     </div>
 </body>
@@ -334,7 +383,7 @@ const createEmailHTML = (documentId, clientEmail) => {
 };
 
 // Email sender function
-const sendEmailWithPDF = async (documentId, documentURL, clientEmail) => {
+const sendEmailWithPDF = async (documentId, documentURL, clientEmail, senderName, invoiceData = {}) => {
   // Fetch the PDF as a buffer
   const response = await axios.get(documentURL, {
     responseType: "arraybuffer",
@@ -352,20 +401,25 @@ const sendEmailWithPDF = async (documentId, documentURL, clientEmail) => {
 
   // Email content with HTML
   const mailOptions = {
-    from: `"Team Paprly" <${EMAIL_USER}>`,
+    from: `"Paprly" <${EMAIL_USER}>`,
     to: clientEmail,
-    subject: `📄 Document Ready for Review - ID: ${documentId}`,
-    html: createEmailHTML(documentId, clientEmail),
-    text: `Hello,
+    subject: `Invoice from ${senderName || 'Paprly'} - ${invoiceData.invoiceNumber || documentId}`,
+    html: createEmailHTML(documentId, clientEmail, senderName, invoiceData),
+    text: `Hey There!!
 
-You've received a document (ID: ${documentId}) shared with you.
-You can view and download it using the attached PDF.
+You've received an invoice from ${senderName || 'Paprly'}.
+The invoice PDF is attached to this email.
 
-Thanks & Regards,
+Invoice Details:
+- Invoice Number: ${invoiceData.invoiceNumber || documentId}
+- Date: ${invoiceData.invoiceDate || new Date().toLocaleDateString()}
+- Amount: ${invoiceData.invoiceAmount || 'To be determined'}
+
+Thanks,
 Team Paprly`,
     attachments: [
       {
-        filename: `Document-${documentId}.pdf`,
+        filename: `Invoice-${invoiceData.invoiceNumber || documentId}.pdf`,
         content: pdfBuffer,
         contentType: "application/pdf",
       },
@@ -379,13 +433,19 @@ Team Paprly`,
 // POST route to handle the API
 router.post("/", async (req, res) => {
   try {
-    const { documentId, documentURL, clientEmail } = req.body;
+    const { 
+      documentId, 
+      documentURL, 
+      clientEmail, 
+      senderName, 
+      invoiceData = {} 
+    } = req.body;
 
     if (!documentId || !documentURL || !clientEmail) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    await sendEmailWithPDF(documentId, documentURL, clientEmail);
+    await sendEmailWithPDF(documentId, documentURL, clientEmail, senderName, invoiceData);
     res.status(200).json({ message: "Email sent successfully" });
   } catch (error) {
     console.error("Email sending error:", error);
