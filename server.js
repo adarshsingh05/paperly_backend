@@ -13,6 +13,8 @@ import dotenv from "dotenv";
 import process from "process";
 import connectDB from "./DB/db.js";
 import freelancerInvoiceUpload from "./pages/api/freelancer-invoice-upload.js";
+import takeFeedback from "./pages/api/take-feedback.js";
+import getFeedback from "./pages/api/get-feedback.js";
 
 const app = express();
 
@@ -42,6 +44,8 @@ console.log(
 app.get("/", (req, res) => res.send("OK"));
 app.use("/api/freelancer-invoice-upload", freelancerInvoiceUpload);
 app.use("/api/shareInvoiceWithClient", sendPdfRoute);
+app.use("/api/take-feedback", takeFeedback);
+app.use("/api/get-feedback", getFeedback);
 
 // This is the correct way to export the Express app in an ES Module environment.
 // It will be used by Vercel as the request handler.

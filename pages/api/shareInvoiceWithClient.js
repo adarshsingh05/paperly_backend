@@ -18,7 +18,7 @@ const createEmailHTML = (documentId, clientEmail, senderName, invoiceData = {}) 
     }),
     invoiceAmount = "To be determined",
     
-    dueDate = "To be determined"
+    dueDate = "Check Pdf"
   } = invoiceData;
 
   return `
