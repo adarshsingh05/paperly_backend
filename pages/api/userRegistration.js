@@ -13,10 +13,10 @@ router.post("/", async (req, res) => {
     }
 
     // creating the user object
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
-    }
+    // const existingUser = await User.findOne({ email });
+    // if (existingUser) {
+    //     return res.status(400).json({ message: "User already exists" });
+    // }
 
     // hashing the password
     const hashedPassword = await bcrypt.hash(password, 10);
