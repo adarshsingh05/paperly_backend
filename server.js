@@ -15,6 +15,8 @@ import connectDB from "./DB/db.js";
 import freelancerInvoiceUpload from "./pages/api/freelancer-invoice-upload.js";
 import takeFeedback from "./pages/api/take-feedback.js";
 import getFeedback from "./pages/api/get-feedback.js";
+import userRegistration from "./pages/api/userRegistration.js";
+
 
 const app = express();
 
@@ -42,6 +44,7 @@ console.log(
 
 // my routes for the api
 app.get("/", (req, res) => res.send("OK"));
+app.use("/api/userRegistration", userRegistration);
 app.use("/api/freelancer-invoice-upload", freelancerInvoiceUpload);
 app.use("/api/shareInvoiceWithClient", sendPdfRoute);
 app.use("/api/take-feedback", takeFeedback);
