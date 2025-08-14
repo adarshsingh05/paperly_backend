@@ -5,7 +5,7 @@ console.log(
   "Node version:",
   process.version
 );
-
+import userLogin from "./pages/api/userLogin.js";
 import sendPdfRoute from "./pages/api/shareInvoiceWithClient.js";
 import express from "express";
 import cors from "cors";
@@ -49,7 +49,7 @@ app.use("/api/freelancer-invoice-upload", freelancerInvoiceUpload);
 app.use("/api/shareInvoiceWithClient", sendPdfRoute);
 app.use("/api/take-feedback", takeFeedback);
 app.use("/api/get-feedback", getFeedback);
-
+app.use("/api/userLogin", userLogin);
 // This is the correct way to export the Express app in an ES Module environment.
 // It will be used by Vercel as the request handler.
 export default app;
