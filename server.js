@@ -16,7 +16,7 @@ import freelancerInvoiceUpload from "./pages/api/freelancer-invoice-upload.js";
 import takeFeedback from "./pages/api/take-feedback.js";
 import getFeedback from "./pages/api/get-feedback.js";
 import userRegistration from "./pages/api/userRegistration.js";
-import enterpriseProfile from "./pages/api/enterprise-profile.js"; // Add this import
+import enterpriseProfile from "./pages/api/enterprise-profile.js"; // Import the enterprise-profile API
 
 const app = express();
 
@@ -50,7 +50,7 @@ app.use("/api/shareInvoiceWithClient", sendPdfRoute);
 app.use("/api/take-feedback", takeFeedback);
 app.use("/api/get-feedback", getFeedback);
 app.use("/api/userLogin", userLogin);
-app.use("/api/enterprise-profile", enterpriseProfile);
+app.use("/api/enterprise-profile", enterpriseProfile); // Add the enterprise-profile route
 
 // This is the correct way to export the Express app in an ES Module environment.
 // It will be used by Vercel as the request handler.

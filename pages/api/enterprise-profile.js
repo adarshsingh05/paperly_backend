@@ -45,4 +45,29 @@ router.post("/", async (req, res) => {
   }
 });
 
+// GET route to retrieve enterprise profile data by email
+router.get("/", async (req, res) => {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required to retrieve the profile." });
+    }
+
+    const profile = await EnterpriseProfile.findOne({ email });
+
+    if (!profile) {
+      return res.status(404).json({ error: "Profile not found." });
+    }
+
+    res.status(200).json({
+      message: "Profile retrieved successfully",
+      profile,
+    });
+  } catch (error) {
+    console.error("Error retrieving enterprise profile:", error);
+    res.status(500).json({ error: "Failed to retrieve profile. Please try again later." });
+  }
+});
+
 export default router;
