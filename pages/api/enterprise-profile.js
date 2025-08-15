@@ -51,7 +51,9 @@ router.get("/", async (req, res) => {
     const { email } = req.query;
 
     if (!email) {
-      return res.status(400).json({ error: "Email is required to retrieve the profile." });
+      return res
+        .status(400)
+        .json({ error: "Email is required to retrieve the profile." });
     }
 
     const profile = await EnterpriseProfile.findOne({ email });
@@ -66,7 +68,9 @@ router.get("/", async (req, res) => {
     });
   } catch (error) {
     console.error("Error retrieving enterprise profile:", error);
-    res.status(500).json({ error: "Failed to retrieve profile. Please try again later." });
+    res
+      .status(500)
+      .json({ error: "Failed to retrieve profile. Please try again later." });
   }
 });
 

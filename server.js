@@ -16,7 +16,7 @@ import freelancerInvoiceUpload from "./pages/api/freelancer-invoice-upload.js";
 import takeFeedback from "./pages/api/take-feedback.js";
 import getFeedback from "./pages/api/get-feedback.js";
 import userRegistration from "./pages/api/userRegistration.js";
-import enterpriseProfile from "./pages/api/enterprise-profile.js"; // Import the enterprise-profile API
+import enterpriseProfile from "./pages/api/enterprise-profile.js";
 
 const app = express();
 
