@@ -54,6 +54,27 @@ router.post("/", authenticateToken, async (req, res) => {
       });
     }
 
+    // Validate required fields including employeeType
+    const requiredFields = ['fullName', 'emailAddress', 'employeeType', 'role', 'joiningDate', 'address', 'paymentMethod', 'tenure', 'salary'];
+    const missingFields = requiredFields.filter(field => !employeeData[field]);
+    
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing required fields",
+        details: `The following fields are required: ${missingFields.join(', ')}`
+      });
+    }
+
+    // Validate employeeType enum values
+    if (!['Employee', 'Freelancer'].includes(employeeData.employeeType)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid employee type",
+        details: "employeeType must be either 'Employee' or 'Freelancer'"
+      });
+    }
+
     // Add the ownerEmail to the employee data
     const newEmployeeDetail = new EmployeeDetail({
       ...employeeData,
@@ -98,6 +119,15 @@ router.put("/:id", authenticateToken, async (req, res) => {
       return res.status(400).json({ 
         success: false,
         error: "User email not found in authentication token." 
+      });
+    }
+
+    // Validate employeeType if it's being updated
+    if (updateData.employeeType && !['Employee', 'Freelancer'].includes(updateData.employeeType)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid employee type",
+        details: "employeeType must be either 'Employee' or 'Freelancer'"
       });
     }
 

@@ -19,6 +19,12 @@ const employeeDetailSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    employeeType: {
+      type: String,
+      required: true,
+      enum: ["Employee", "Freelancer"],
+      trim: true,
+    },
     role: {
       type: String,
       required: true,
