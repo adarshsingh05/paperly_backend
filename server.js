@@ -17,6 +17,7 @@ import takeFeedback from "./pages/api/take-feedback.js";
 import getFeedback from "./pages/api/get-feedback.js";
 import userRegistration from "./pages/api/userRegistration.js";
 import enterpriseProfile from "./pages/api/enterprise-profile.js";
+import employeeDetails from "./pages/api/employeeDetails.js";
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use("/api/take-feedback", takeFeedback);
 app.use("/api/get-feedback", getFeedback);
 app.use("/api/userLogin", userLogin);
 app.use("/api/enterprise-profile", enterpriseProfile); // Add the enterprise-profile route
+app.use("/api/employeeDetails", employeeDetails); // Add the employee details route
 
 // This is the correct way to export the Express app in an ES Module environment.
 // It will be used by Vercel as the request handler.
