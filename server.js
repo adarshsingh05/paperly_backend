@@ -19,6 +19,12 @@ import userRegistration from "./pages/api/userRegistration.js";
 import enterpriseProfile from "./pages/api/enterprise-profile.js";
 import employeeDetails from "./pages/api/employeeDetails.js";
 import generateOfferLetter from "./pages/api/generateOfferLetter.js";
+import generateSalaryLetter from "./pages/api/generateSalaryLetter.js";
+import generateOnboardingLetter from "./pages/api/generateOnboardingLetter.js";
+import generateNDA from "./pages/api/generateNDA.js";
+import adminDocumentUpload from "./pages/api/adminDocumentUpload.js";
+import sendDocumentEmail from "./pages/api/sendDocumentEmail.js";
+import signRecievedDocuments from "./pages/api/signRecievedDocuments.js";
 
 const app = express();
 
@@ -55,6 +61,12 @@ app.use("/api/userLogin", userLogin);
 app.use("/api/enterprise-profile", enterpriseProfile); // Add the enterprise-profile route
 app.use("/api/employeeDetails", employeeDetails); // Add the employee details route
 app.use("/api/generateOfferLetter", generateOfferLetter); // Add the generate offer letter route
+app.use("/api/generateSalaryLetter", generateSalaryLetter); // Add the generate salary letter route
+app.use("/api/generateOnboardingLetter", generateOnboardingLetter); // Add the generate onboarding letter route
+app.use("/api/generateNDA", generateNDA); // Add the generate NDA route
+app.use("/api/adminDocumentUpload", adminDocumentUpload); // Add the admin document upload route
+app.use("/api/sendDocumentEmail", sendDocumentEmail); // Add the send document email route
+app.use("/api/signRecievedDocuments", signRecievedDocuments); // Add the signRecievedDocuments route
 
 // This is the correct way to export the Express app in an ES Module environment.
 // It will be used by Vercel as the request handler.
