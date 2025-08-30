@@ -90,7 +90,7 @@ const uploadToSupabase = async ({ buffer, filename, contentType }) => {
     .from("documentbyadmin")
     .upload(filename, buffer, {
       contentType,
-      upsert: false,
+      upsert: true,
     });
   if (error) throw error;
 
@@ -786,7 +786,7 @@ router.patch("/:documentId", async (req, res) => {
 
     // Extract filename from existing Supabase link to maintain consistency
     const existingUrl = existingDocument.supabaseLink;
-    const urlParts = existingUrl.split('/');
+    const urlParts = existingUrl.split("/");
     const existingFilename = urlParts[urlParts.length - 1];
 
     // Delete old file from Supabase
@@ -817,9 +817,10 @@ router.patch("/:documentId", async (req, res) => {
     let parsedMetadata = existingDocument.metadata;
     if (fields.metadata) {
       try {
-        parsedMetadata = typeof fields.metadata === "string" 
-          ? JSON.parse(fields.metadata) 
-          : fields.metadata;
+        parsedMetadata =
+          typeof fields.metadata === "string"
+            ? JSON.parse(fields.metadata)
+            : fields.metadata;
       } catch (error) {
         console.error("Error parsing metadata:", error);
         // Keep existing metadata if parsing fails
@@ -829,9 +830,10 @@ router.patch("/:documentId", async (req, res) => {
     let parsedTags = existingDocument.tags || [];
     if (fields.tags) {
       try {
-        parsedTags = typeof fields.tags === "string" 
-          ? JSON.parse(fields.tags) 
-          : fields.tags;
+        parsedTags =
+          typeof fields.tags === "string"
+            ? JSON.parse(fields.tags)
+            : fields.tags;
         if (!Array.isArray(parsedTags)) {
           throw new Error("Tags must be an array");
         }
@@ -846,7 +848,8 @@ router.patch("/:documentId", async (req, res) => {
       supabaseLink: uploadResult.publicUrl,
       status: "Signed",
       signedDate: new Date(),
-      documentDescription: fields.documentDescription || existingDocument.documentDescription,
+      documentDescription:
+        fields.documentDescription || existingDocument.documentDescription,
       metadata: parsedMetadata,
       tags: parsedTags,
     };
@@ -881,7 +884,6 @@ router.patch("/:documentId", async (req, res) => {
         tags: updatedDocument.tags,
       },
     });
-
   } catch (error) {
     console.error("Error replacing document:", error);
     res.status(500).json({
