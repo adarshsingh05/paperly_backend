@@ -723,4 +723,172 @@ router.get("/:documentId", authenticateToken, async (req, res) => {
   }
 });
 
+// PATCH route to replace document with signed version (no authentication required)
+router.patch("/:documentId", async (req, res) => {
+  try {
+    const { documentId } = req.params;
+
+    // Validate document ID format
+    if (!documentId || documentId.length !== 24) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid document ID format",
+      });
+    }
+
+    // Parse multipart form data
+    let parsed;
+    try {
+      parsed = await parseMultipart(req);
+    } catch (err) {
+      const msg = err.message || "Parse error";
+      if (msg.toLowerCase().includes("large")) {
+        return res.status(413).json({ success: false, error: msg });
+      }
+      return res.status(400).json({ success: false, error: msg });
+    }
+
+    const { fields, files } = parsed;
+
+    // Check if file is provided
+    if (files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Signed document file is required",
+      });
+    }
+
+    if (files.length > 1) {
+      return res.status(400).json({
+        success: false,
+        error: "Only one file can be uploaded at a time",
+      });
+    }
+
+    const file = files[0];
+
+    // Validate file type (only PDFs allowed)
+    if (file.contentType !== "application/pdf") {
+      return res.status(400).json({
+        success: false,
+        error: "Only PDF files are allowed",
+      });
+    }
+
+    // Find the existing document
+    const existingDocument = await AdminDocumentDraft.findById(documentId);
+    if (!existingDocument) {
+      return res.status(404).json({
+        success: false,
+        error: "Document not found",
+      });
+    }
+
+    // Extract filename from existing Supabase link to maintain consistency
+    const existingUrl = existingDocument.supabaseLink;
+    const urlParts = existingUrl.split('/');
+    const existingFilename = urlParts[urlParts.length - 1];
+
+    // Delete old file from Supabase
+    try {
+      await deleteFromSupabase(existingFilename);
+    } catch (error) {
+      console.error("Error deleting old file from Supabase:", error);
+      // Continue with upload even if deletion fails
+    }
+
+    // Upload new signed document to Supabase with same filename
+    let uploadResult;
+    try {
+      uploadResult = await uploadToSupabase({
+        buffer: file.data,
+        filename: existingFilename,
+        contentType: file.contentType,
+      });
+    } catch (err) {
+      console.error("Supabase upload error:", err);
+      return res.status(500).json({
+        success: false,
+        error: "Failed to upload signed document to Supabase",
+      });
+    }
+
+    // Parse optional fields
+    let parsedMetadata = existingDocument.metadata;
+    if (fields.metadata) {
+      try {
+        parsedMetadata = typeof fields.metadata === "string" 
+          ? JSON.parse(fields.metadata) 
+          : fields.metadata;
+      } catch (error) {
+        console.error("Error parsing metadata:", error);
+        // Keep existing metadata if parsing fails
+      }
+    }
+
+    let parsedTags = existingDocument.tags || [];
+    if (fields.tags) {
+      try {
+        parsedTags = typeof fields.tags === "string" 
+          ? JSON.parse(fields.tags) 
+          : fields.tags;
+        if (!Array.isArray(parsedTags)) {
+          throw new Error("Tags must be an array");
+        }
+      } catch (error) {
+        console.error("Error parsing tags:", error);
+        // Keep existing tags if parsing fails
+      }
+    }
+
+    // Update the document in MongoDB
+    const updateData = {
+      supabaseLink: uploadResult.publicUrl,
+      status: "Signed",
+      signedDate: new Date(),
+      documentDescription: fields.documentDescription || existingDocument.documentDescription,
+      metadata: parsedMetadata,
+      tags: parsedTags,
+    };
+
+    const updatedDocument = await AdminDocumentDraft.findByIdAndUpdate(
+      documentId,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedDocument) {
+      return res.status(500).json({
+        success: false,
+        error: "Failed to update document in database",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Document signed and replaced successfully",
+      data: {
+        documentId: updatedDocument._id,
+        supabaseLink: updatedDocument.supabaseLink,
+        documentType: updatedDocument.documentType,
+        employeeName: updatedDocument.employeeName,
+        employeeEmail: updatedDocument.employeeEmail,
+        documentTitle: updatedDocument.documentTitle,
+        status: updatedDocument.status,
+        signedDate: updatedDocument.signedDate,
+        updatedAt: updatedDocument.updatedAt,
+        metadata: updatedDocument.metadata,
+        tags: updatedDocument.tags,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error replacing document:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to replace document. Please try again later.",
+    });
+  }
+});
+
 export default router;
