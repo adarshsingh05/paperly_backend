@@ -651,6 +651,147 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 });
 
+// GET route to fetch signed documents by employee email (no authentication required)
+router.get("/signed/:employeeEmail", async (req, res) => {
+  try {
+    const { employeeEmail } = req.params;
+
+    if (!employeeEmail) {
+      return res.status(400).json({
+        success: false,
+        error: "Employee email is required",
+      });
+    }
+
+    console.log("Searching for documents for email:", employeeEmail);
+
+    // First, try to find documents with "Signed" status by email
+    let signedDocuments = await AdminDocumentDraft.find({
+      employeeEmail: employeeEmail.toLowerCase(),
+      status: "Signed",
+      isActive: true,
+    })
+      .select("-__v")
+      .lean();
+
+    console.log(
+      'Documents with "Signed" status by email:',
+      signedDocuments.length
+    );
+
+    // If no documents found by email, try to find by employee name
+    if (signedDocuments.length === 0) {
+      // Extract name from email (remove @domain.com)
+      const emailName = employeeEmail.split("@")[0];
+      console.log("Trying to find documents by name from email:", emailName);
+
+      // Search for documents with similar employee names
+      signedDocuments = await AdminDocumentDraft.find({
+        employeeName: { $regex: emailName, $options: "i" },
+        status: "Signed",
+        isActive: true,
+      })
+        .select("-__v")
+        .lean();
+
+      console.log(
+        'Documents with "Signed" status by name:',
+        signedDocuments.length
+      );
+    }
+
+    // If still no documents, try with "Signed and Received" status
+    if (signedDocuments.length === 0) {
+      signedDocuments = await AdminDocumentDraft.find({
+        employeeEmail: employeeEmail.toLowerCase(),
+        status: "Signed and Received",
+        isActive: true,
+      })
+        .select("-__v")
+        .lean();
+      console.log(
+        'Documents with "Signed and Received" status:',
+        signedDocuments.length
+      );
+    }
+
+    // If still no documents, try with any status that has a signedDate
+    if (signedDocuments.length === 0) {
+      signedDocuments = await AdminDocumentDraft.find({
+        employeeEmail: employeeEmail.toLowerCase(),
+        signedDate: { $exists: true, $ne: null },
+        isActive: true,
+      })
+        .select("-__v")
+        .lean();
+      console.log("Documents with signedDate:", signedDocuments.length);
+    }
+
+    // If still no documents, try with any status that has been updated recently (likely signed)
+    if (signedDocuments.length === 0) {
+      signedDocuments = await AdminDocumentDraft.find({
+        employeeEmail: employeeEmail.toLowerCase(),
+        isActive: true,
+      })
+        .select("-__v")
+        .lean();
+      console.log("All documents for this employee:", signedDocuments.length);
+
+      // Filter to show only documents that seem to be signed (have supabaseLink and are not Draft)
+      signedDocuments = signedDocuments.filter(
+        (doc) =>
+          doc.supabaseLink && doc.status !== "Draft" && doc.status !== "Sent"
+      );
+      console.log("Filtered documents:", signedDocuments.length);
+    }
+
+    // Format documents for frontend
+    const formattedDocuments = signedDocuments.map((doc) => ({
+      id: doc._id,
+      documentType: doc.documentType,
+      employeeName: doc.employeeName,
+      employeeEmail: doc.employeeEmail,
+      documentTitle: doc.documentTitle,
+      documentDescription: doc.documentDescription,
+      supabaseLink: doc.supabaseLink,
+      status: doc.status,
+      tags: doc.tags || [],
+      metadata: {
+        employeeType: doc.metadata?.employeeType || "Employee",
+        role: doc.metadata?.role || "",
+        salary: doc.metadata?.salary || null,
+        joiningDate: doc.metadata?.joiningDate || null,
+        companyName: doc.metadata?.companyName || "",
+      },
+      dates: {
+        createdAt: doc.createdAt,
+        updatedAt: doc.updatedAt,
+        sentDate: doc.sentDate,
+        signedDate: doc.signedDate,
+        expiryDate: doc.expiryDate,
+      },
+      isActive: doc.isActive,
+    }));
+
+    console.log("Final formatted documents:", formattedDocuments.length);
+
+    res.status(200).json({
+      success: true,
+      message: "Signed documents fetched successfully",
+      data: {
+        documents: formattedDocuments,
+        count: formattedDocuments.length,
+        employeeEmail: employeeEmail,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching signed documents:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch signed documents. Please try again later.",
+    });
+  }
+});
 // GET route to fetch a single document by ID
 router.get("/:documentId", authenticateToken, async (req, res) => {
   try {
