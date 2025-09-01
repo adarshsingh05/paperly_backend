@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticateToken } from "../../middleware/auth";
+import { authenticateToken } from "../../middleware/auth.js";
 import EmployeePaymentDetails from "../../models/employeePaymentDetails.js";
 
 const router = express.Router();
@@ -23,18 +23,18 @@ router.post("/", authenticateToken, async (req, res) => {
       "employeeName",
       "paymentAmount",
       "modeOfPayment",
-      "dateOfPayment"
+      "dateOfPayment",
     ];
-    
-    const missingFields = requiredFields.filter(
-      (field) => !paymentData[field]
-    );
+
+    const missingFields = requiredFields.filter((field) => !paymentData[field]);
 
     if (missingFields.length > 0) {
       return res.status(400).json({
         success: false,
         error: "Missing required fields",
-        details: `The following fields are required: ${missingFields.join(", ")}`,
+        details: `The following fields are required: ${missingFields.join(
+          ", "
+        )}`,
       });
     }
 
@@ -60,8 +60,12 @@ router.post("/", authenticateToken, async (req, res) => {
       ...paymentData,
       ownerEmail: ownerEmail,
       dateOfPayment: paymentDate,
-      lastPaymentDate: paymentData.lastPaymentDate ? new Date(paymentData.lastPaymentDate) : undefined,
-      dateOfJoining: paymentData.dateOfJoining ? new Date(paymentData.dateOfJoining) : undefined,
+      lastPaymentDate: paymentData.lastPaymentDate
+        ? new Date(paymentData.lastPaymentDate)
+        : undefined,
+      dateOfJoining: paymentData.dateOfJoining
+        ? new Date(paymentData.dateOfJoining)
+        : undefined,
     });
 
     await newPaymentDetails.save();
@@ -88,7 +92,8 @@ router.post("/", authenticateToken, async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: "Failed to create employee payment details. Please try again later.",
+      error:
+        "Failed to create employee payment details. Please try again later.",
     });
   }
 });
@@ -108,21 +113,23 @@ router.get("/", authenticateToken, async (req, res) => {
 
     // Build filter object
     const filter = { ownerEmail: ownerEmail };
-    
+
     if (employeeEmail) {
       filter.employeeEmail = employeeEmail;
     }
-    
+
     if (currentMonth) {
       filter.currentMonth = currentMonth;
     }
-    
+
     if (paymentStatus) {
       filter.currentMonthPaymentStatus = paymentStatus;
     }
 
     // Find payment details by ownerEmail (which should match the authenticated user's email)
-    const paymentDetails = await EmployeePaymentDetails.find(filter).sort({ dateOfPayment: -1 });
+    const paymentDetails = await EmployeePaymentDetails.find(filter).sort({
+      dateOfPayment: -1,
+    });
 
     if (!paymentDetails || paymentDetails.length === 0) {
       return res.status(404).json({
@@ -141,7 +148,8 @@ router.get("/", authenticateToken, async (req, res) => {
     console.error("Error retrieving employee payment details:", error);
     res.status(500).json({
       success: false,
-      error: "Failed to retrieve employee payment details. Please try again later.",
+      error:
+        "Failed to retrieve employee payment details. Please try again later.",
     });
   }
 });
@@ -168,7 +176,8 @@ router.get("/:id", authenticateToken, async (req, res) => {
     if (!paymentDetails) {
       return res.status(404).json({
         success: false,
-        error: "Employee payment details not found or you don't have permission to view it.",
+        error:
+          "Employee payment details not found or you don't have permission to view it.",
       });
     }
 
@@ -181,7 +190,8 @@ router.get("/:id", authenticateToken, async (req, res) => {
     console.error("Error retrieving employee payment details:", error);
     res.status(500).json({
       success: false,
-      error: "Failed to retrieve employee payment details. Please try again later.",
+      error:
+        "Failed to retrieve employee payment details. Please try again later.",
     });
   }
 });
@@ -229,7 +239,8 @@ router.put("/:id", authenticateToken, async (req, res) => {
     if (!updatedPaymentDetails) {
       return res.status(404).json({
         success: false,
-        error: "Employee payment details not found or you don't have permission to update it.",
+        error:
+          "Employee payment details not found or you don't have permission to update it.",
       });
     }
 
@@ -254,7 +265,8 @@ router.put("/:id", authenticateToken, async (req, res) => {
 
     res.status(500).json({
       success: false,
-      error: "Failed to update employee payment details. Please try again later.",
+      error:
+        "Failed to update employee payment details. Please try again later.",
     });
   }
 });
@@ -273,15 +285,18 @@ router.delete("/:id", authenticateToken, async (req, res) => {
     }
 
     // Find and delete payment details, ensuring it belongs to the authenticated user
-    const deletedPaymentDetails = await EmployeePaymentDetails.findOneAndDelete({
-      _id: id,
-      ownerEmail: ownerEmail,
-    });
+    const deletedPaymentDetails = await EmployeePaymentDetails.findOneAndDelete(
+      {
+        _id: id,
+        ownerEmail: ownerEmail,
+      }
+    );
 
     if (!deletedPaymentDetails) {
       return res.status(404).json({
         success: false,
-        error: "Employee payment details not found or you don't have permission to delete it.",
+        error:
+          "Employee payment details not found or you don't have permission to delete it.",
       });
     }
 
@@ -294,7 +309,8 @@ router.delete("/:id", authenticateToken, async (req, res) => {
     console.error("Error deleting employee payment details:", error);
     res.status(500).json({
       success: false,
-      error: "Failed to delete employee payment details. Please try again later.",
+      error:
+        "Failed to delete employee payment details. Please try again later.",
     });
   }
 });
