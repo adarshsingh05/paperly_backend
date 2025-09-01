@@ -25,7 +25,7 @@ import generateNDA from "./pages/api/generateNDA.js";
 import adminDocumentUpload from "./pages/api/adminDocumentUpload.js";
 import sendDocumentEmail from "./pages/api/sendDocumentEmail.js";
 import signRecievedDocuments from "./pages/api/signRecievedDocuments.js";
-
+import employeePayment from "./pages/api/employepayment.js";
 const app = express();
 
 // crash handlers
@@ -68,6 +68,7 @@ app.use("/api/adminDocumentUpload", adminDocumentUpload); // Add the admin docum
 app.use("/api/sendDocumentEmail", sendDocumentEmail); // Add the send document email route
 app.use("/api/signRecievedDocuments", signRecievedDocuments); // Add the signRecievedDocuments route
 
+app.use("/api/employeePayment", employeePayment); // Add the employee payment route
 // This is the correct way to export the Express app in an ES Module environment.
 // It will be used by Vercel as the request handler.
 export default app;
