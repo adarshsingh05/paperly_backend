@@ -1,15 +1,15 @@
 import Razorpay from 'razorpay';
-import UserPayment from '../../models/userpayment';
-import User from '../../models/user';
-import connectDB from '../../DB/db';
+import Payment from '../../models/userpaymentmodel.js';
+import User from '../../models/Users.js';
+import connectDB from '../../DB/db.js';
 import express from 'express';
 import crypto from 'crypto';
-import { checkSubscription } from '../../middleware/checkPayment';
+import { checkSubscription } from '../../middleware/checkPayment.js';
 
 
 const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
+    key_id: "rzp_test_RGza9p0QhWmwOL",
+    key_secret: "7uBqhSwaUfipfomnu3eA8NE3",
 })
 
 const router = express.Router();

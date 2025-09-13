@@ -56,5 +56,7 @@ const UserPaymentSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-const Payment = mongoose.model("Payment", UserPaymentSchema);
+const Payment =
+  mongoose.models.Payment || mongoose.model("Payment", UserPaymentSchema);
+
 export default Payment;

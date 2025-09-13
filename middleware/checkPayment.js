@@ -1,4 +1,4 @@
-import UserPayment from "../models/userpayment.js";
+import UserPayment from "../models/userpaymentmodel.js";
 
 export const checkSubscription = async (req, res, next) => {
 

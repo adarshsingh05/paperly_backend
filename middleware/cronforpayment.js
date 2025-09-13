@@ -5,8 +5,8 @@ import connectDB from "./DB/db.js";
 
 
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
+  key_id: "rzp_test_RGza9p0QhWmwOL",
+  key_secret: "7uBqhSwaUfipfomnu3eA8NE3",
 });
 
 cron.schedule("0 0 1 * *", async() =>{
