@@ -26,6 +26,8 @@ import adminDocumentUpload from "./pages/api/adminDocumentUpload.js";
 import sendDocumentEmail from "./pages/api/sendDocumentEmail.js";
 import signRecievedDocuments from "./pages/api/signRecievedDocuments.js";
 import employeePayment from "./pages/api/employepayment.js";
+import  userPayment from "./pages/api/userPayment.js";
+import { checkSubscription } from "./middleware/checkPayment.js";
 const app = express();
 
 // crash handlers
@@ -67,6 +69,11 @@ app.use("/api/generateNDA", generateNDA); // Add the generate NDA route
 app.use("/api/adminDocumentUpload", adminDocumentUpload); // Add the admin document upload route
 app.use("/api/sendDocumentEmail", sendDocumentEmail); // Add the send document email route
 app.use("/api/signRecievedDocuments", signRecievedDocuments); // Add the signRecievedDocuments route
+app.use("/api/create-order", userPayment); // Add the user payment route
+app.use("/api/verify-payment", userPayment); // Add the user payment route
+app.use("/api/premium-content", checkSubscription, userPayment); // Protected route 
+
+
 
 app.use("/api/employeePayment", employeePayment); // Add the employee payment route
 // This is the correct way to export the Express app in an ES Module environment.
