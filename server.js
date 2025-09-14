@@ -1,4 +1,6 @@
 // at top for sanity
+import {authenticateToken} from "./middleware/auth.js";
+
 console.log(
   "Process starting. PID:",
   process.pid,
@@ -26,7 +28,7 @@ import adminDocumentUpload from "./pages/api/adminDocumentUpload.js";
 import sendDocumentEmail from "./pages/api/sendDocumentEmail.js";
 import signRecievedDocuments from "./pages/api/signRecievedDocuments.js";
 import employeePayment from "./pages/api/employepayment.js";
-import  userPayment from "./pages/api/userPayment.js";
+import userPayment from "./pages/api/userPayment.js";
 import { checkSubscription } from "./middleware/checkPayment.js";
 const app = express();
 
@@ -69,9 +71,9 @@ app.use("/api/generateNDA", generateNDA); // Add the generate NDA route
 app.use("/api/adminDocumentUpload", adminDocumentUpload); // Add the admin document upload route
 app.use("/api/sendDocumentEmail", sendDocumentEmail); // Add the send document email route
 app.use("/api/signRecievedDocuments", signRecievedDocuments); // Add the signRecievedDocuments route
-app.use("/api/create-order", userPayment); // Add the user payment route
-app.use("/api/verify-payment", userPayment); // Add the user payment route
-app.use("/api/premium-content", checkSubscription, userPayment); // Protected route 
+app.use("/api/userPayment", userPayment); // Protected route
+console.log("✅ Mounted userPayment routes at /api");
+
 
 
 
